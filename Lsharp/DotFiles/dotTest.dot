@@ -1,0 +1,15 @@
+digraph MealyMachine {
+    a -> b1 [label="x/o1"];
+    a -> a [label="y/o2"];
+    b1 -> b2 [label="x/o3"];
+    b1 -> a [label="y/o1"];
+    b2 -> b3 [label="x/o1"];
+    b2 -> a [label="y/o2"];
+    b3 -> b4 [label="x/o3"];
+    b3 -> a [label="y/o1"];
+    b4 -> c [label="x/o1"];
+    b4 -> a [label="y/o4"];
+    c -> a [label="x/o3"];
+    c -> a [label="y/o5"];
+}
+
