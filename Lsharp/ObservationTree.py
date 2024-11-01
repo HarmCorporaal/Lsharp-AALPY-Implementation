@@ -4,26 +4,22 @@ class Node:
     def __init__(self, parent=None):
         Node._id_counter += 1
         self.id = Node._id_counter
-        self.successors = {}  # A dictionary of input -> (output, successor node)
-        self.parent = parent  # Reference to the parent node
-        self.input_to_parent = None  # The input that led to this node from the parent
-
+        self.successors = {}
+        self.parent = parent
+        self.input_to_parent = None
 
     def __hash__(self):
         return hash(self.id)
 
-
     def add_successor(self, input_val, output_val, successor_node):
         """ Adds a successor node to the current node based on input """
         self.successors[input_val] = (output_val, successor_node)
-
 
     def get_successor(self, input_val):
         """ Returns the successor node for the given input """
         if input_val in self.successors:
             return self.successors[input_val][1]
         return None
-
 
     def get_output(self, input_val):
         """ Returns the output for the given input """
@@ -32,6 +28,7 @@ class Node:
         return None
     
     def extend_and_get(self, input, output):
+        """ Extend the node with a new successor and return the successor node """
         if (input in self.successors):
             out = self.successors[input][0]
             if out != output:
@@ -42,34 +39,26 @@ class Node:
         successor_node.input_to_parent = input
         return successor_node
 
-    
 
 class ObservationTree:
     def __init__(self, alphabet):
         """
-        Initialize the tree with a root node and an alphabet.
-        
-        Args:
-            alphabet (list): A list of valid inputs that can be used in the tree.
+        Initialize the tree with a root node and the alphabet
         """
         self.root = Node()
         self.alphabet = set(alphabet)
 
-
     def _validate_input(self, inputs):
         """
-        Check if all inputs are valid (part of the alphabet).
-        Raise ValueError if any input is invalid.
+        Check if all inputs are valid (part of the alphabet)
         """
         for input_val in inputs:
             if input_val not in self.alphabet:
                 raise ValueError(f"Input '{input_val}' is not in the alphabet.")
 
-
     def insert_observation(self, inputs, outputs):
         """
-        Insert an observation into the tree using sequences of inputs and outputs.
-        The inputs and outputs are lists of corresponding values.
+        Insert an observation into the tree using sequences of inputs and outputs
         """
         if len(inputs) != len(outputs):
             raise ValueError("Inputs and outputs must have the same length.")
@@ -80,17 +69,14 @@ class ObservationTree:
         for input_val, output_val in zip(inputs, outputs):
             current_node = current_node.extend_and_get(input_val, output_val)
 
-
     def get_observation(self, inputs):
         """
-        Retrieve the list of outputs based on a given sequence of inputs.
-        Returns None if the input sequence is not fully present in the tree.
+        Retrieve the list of outputs based on a given sequence of inputs
         """
         self._validate_input(inputs)
 
         current_node = self.root
         observation = []
-
         for input_val in inputs:
             output = current_node.get_output(input_val)
             if output is None:
@@ -100,16 +86,13 @@ class ObservationTree:
 
         return observation
 
-
     def get_successor(self, inputs):
         """
-        Retrieve the node (sub-tree) corresponding to the given sequence of inputs.
-        Returns None if the input sequence does not exist.
+        Retrieve the node (sub-tree) corresponding to the given sequence of inputs
         """
         self._validate_input(inputs)
 
         current_node = self.root
-
         for input_val in inputs:
             successor_node = current_node.get_successor(input_val)
             if successor_node is None:
@@ -118,15 +101,11 @@ class ObservationTree:
 
         return current_node
 
-
     def get_transfer_sequence(self, from_node, to_node):
         """
-        Get the transfer sequence (inputs) that moves from one node to another.
-        This method traces back from the `to_node` to the `from_node` using the parent links
-        and collects the sequence of inputs used to reach the `to_node`.
+        Get the transfer sequence (inputs) that moves from one node to another
         """
         transfer_sequence = []
-
         current_node = to_node
 
         while current_node != from_node:

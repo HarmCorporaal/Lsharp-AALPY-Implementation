@@ -1,7 +1,9 @@
 from aalpy.base import Oracle, SUL
 from ObservationTree import ObservationTree
 from aalpy.automata import MealyMachine, MealyState
+from WMethodEqOracleMealy import WMethodEqOracleMealy
 from Apartness import Apartness
+from ADS import Ads
 
 class Lsharp:
     def __init__(self, alphabet: set, sul: SUL, eq_oracle: Oracle, automaton_type, extension_rule="Nothing", separation_rule="SepSeq", 
@@ -44,48 +46,47 @@ class Lsharp:
         learning_rounds = 0
         self.basis.add(self.ob_tree.root)
 
+        self.sul.post()
+        self.sul.pre()
+
         while True:
             if self.max_learning_rounds and learning_rounds == self.max_learning_rounds:
                 break
 
             learning_rounds += 1
 
-            # Build Hypothesis
             hypothesis = self._build_hypothesis()
 
-            # Check for counter example
-            counter_example = self.eq_oracle.find_cex(hypothesis)
+            if isinstance(self.eq_oracle, WMethodEqOracleMealy):
+                counter_example = self.eq_oracle.find_cex(hypothesis, self.ob_tree)
+            else:
+                counter_example = self.eq_oracle.find_cex(hypothesis)
 
-            # If there exists no counter example: return hypothesis
             if counter_example is None:
-                print("Finished running L#, result:")
-                print(hypothesis)
-                return hypothesis
+                return hypothesis, self.sul, learning_rounds
 
-            # Else process the counter example by:
             cex_outputs = self.sul.query(counter_example)
             self._process_counter_example(hypothesis, counter_example, cex_outputs)
 
         return hypothesis
 
     def _build_hypothesis(self):
+        """
+        Builds the hypothesis which will be sent to the SUL
+        """
         build_hyp = 1
         while True:
             build_hyp += 1
 
             self._make_observation_tree_adequate()
 
-            # Construct hypothesis
             hypothesis = self._construct_hypothesis()
 
-            # create Counter example based on witness in tree/hypothesis
             counter_example = Apartness.compute_witness_in_tree_and_hypothesis(self.ob_tree, hypothesis)
 
-            # If consistent / no counter example found: return hypothesis
             if not counter_example:
                 return hypothesis
 
-            # check outputs of the counter example & process the counter example
             cex_outputs = self.ob_tree.get_observation(counter_example)
             self._process_counter_example(hypothesis, counter_example, cex_outputs)
 
@@ -192,13 +193,12 @@ class Lsharp:
                 if basis_state.get_successor(input) is None:
                     self._explore_frontier(basis_state, input)
                     new_frontier = basis_state.get_successor(input)
-                    basis_candidates = list(self._find_basis_candidates(new_frontier))
+                    basis_candidates = self._find_basis_candidates(new_frontier)
                     self.frontier_to_basis_dict[new_frontier] = basis_candidates
 
     def _find_basis_candidates(self, new_frontier):
         return (
-            new_basis_state
-            for new_basis_state in self.basis
+            new_basis_state for new_basis_state in self.basis
             if not Apartness.states_are_apart(new_basis_state, new_frontier, self.ob_tree)
         )
 
@@ -208,7 +208,10 @@ class Lsharp:
         explores a specific frontier state (basis state + input) by passing a query to the sul
         """
         if (self.extension_rule == "ADS"):
-            pass # TODO
+            suffix = Ads(self.ob_tree, self.basis)
+            ads_in, ads_out = self._adaptive_output_query(self.ob_tree.get_transfer_sequence(self.ob_tree.root, basis_state), input, suffix)
+            self.ob_tree.insert_observation(ads_in, ads_out)
+            return 
 
         if (self.extension_rule == "Nothing" or (self.extension_rule == "SepSeq" and len(self.basis) == 1)):
             inputs = self.ob_tree.get_transfer_sequence(self.ob_tree.root, basis_state)
@@ -229,6 +232,90 @@ class Lsharp:
             outputs = self.sul.query(inputs)
             self.ob_tree.insert_observation(inputs, outputs)
             return
+
+    def _adaptive_output_query(self, prefix, infix, suffix):
+        """
+        Adds input to the prefix and calls the base function
+        """
+        prefix.append(infix)
+        return self._adaptive_output_query_base(prefix, suffix)
+
+    def _adaptive_output_query_base(self, prefix, suffix):
+        """
+        Query the tree for a result, if unsuccesful query the sul and update the tree
+        """
+        from_node = self.ob_tree.get_successor(prefix)
+        if from_node:
+            tree_in, tree_out = self._answer_ads_from_tree(suffix, from_node)
+            suffix.reset_to_root()
+
+            if tree_out:
+                inputs = prefix
+                outputs = self.ob_tree.get_observation(prefix)
+                inputs.extend(tree_in)
+                outputs.extend(tree_out)
+                return (inputs, outputs)
+
+        outputs = self.sul.query(prefix)
+        sul_in, sul_out = self._sul_adaptive_query(prefix, suffix)
+        if sul_out:
+            outputs = sul_out
+        
+        self.ob_tree.insert_observation(sul_in, outputs)
+
+        return sul_in, outputs
+    
+    def _sul_adaptive_query(self, inputs, ads):
+        """
+        sends inputs to the sul and returns the output
+        """
+        outputs_received = []
+        last_output = None
+
+        self.sul.post()
+        self.sul.pre()
+
+        for input in inputs:
+            output = self.sul.step(input)
+            outputs_received.append(output)
+
+        while True:
+            next_input = ads.next_input(last_output)
+            if next_input is None:
+                break
+            inputs.append(next_input)
+            output = self.sul.step(next_input)
+            outputs_received.append(output)
+            last_output = output
+
+        return inputs, outputs_received
+
+    def _answer_ads_from_tree(self, ads, from_node):
+        """
+        searches the tree based on the inputs returning the inputs/ouputs when all ads inputs are used
+        """
+        prev_output = None
+        inputs_sent = []
+        outputs_received = []
+        current_node = from_node
+
+        while True:
+            next_input = ads.next_input(prev_output)
+            if next_input is None:
+                break
+            inputs_sent.append(next_input)
+
+            output_from_node = current_node.get_output(next_input)
+            successor_from_node = current_node.get_successor(next_input)
+            if successor_from_node is None:
+                return None, None
+
+            prev_output = output_from_node
+            outputs_received.append(output_from_node)
+            current_node = successor_from_node
+
+        ads.reset_to_root()
+        return inputs_sent, outputs_received
 
     def _get_or_compute_witness(self, state_one, state_two):
         """
@@ -281,11 +368,12 @@ class Lsharp:
         Specifically identify using sepseq
         """
         basis_candidates = self.frontier_to_basis_dict.get(frontier_state)
-        iterator = iter(basis_candidates)
-        basis_one = next(iterator)
-        basis_two = next(iterator)
+        iterator = basis_candidates
+        basis_one = iterator[0]
+        basis_two = iterator[1]
 
         witness = self._get_or_compute_witness(basis_one, basis_two)
+
         inputs = self.ob_tree.get_transfer_sequence(self.ob_tree.root, frontier_state)
         inputs.extend(witness)
 
@@ -295,9 +383,11 @@ class Lsharp:
 
     def _identify_frontier_ads(self, frontier_state):
         """
-        ADS PART -> TODO
+        Specifically indentify using ADS
         """
-        pass
+        basis_candidates = self.frontier_to_basis_dict.get(frontier_state)
+        suffix = Ads(self.ob_tree, set(basis_candidates))
+        return self._adaptive_output_query_base(self.ob_tree.get_transfer_sequence(self.ob_tree.root, frontier_state), suffix)
 
     def _construct_hypothesis(self):
         """
@@ -375,25 +465,25 @@ class Lsharp:
             prefix.append(input)
 
         h = (len(prefix) + len(cex_inputs)) // 2
-        sigma1 = cex_inputs[:h]
-        sigma2 = cex_inputs[h:]
+        sigma1 = list(cex_inputs[:h])
+        sigma2 = list(cex_inputs[h:])
 
         hyp_state_p = self._get_mealy_successor(hypothesis, hypothesis.initial_state, sigma1)
         hyp_node_p = list(self.basis_to_mealy_dict.keys())[list(self.basis_to_mealy_dict.values()).index(hyp_state_p)]
         hyp_p_access = self.ob_tree.get_transfer_sequence(self.ob_tree.root, hyp_node_p)
 
-        witness = self._get_or_compute_witness(tree_node, hyp_node)
+        witness = Apartness.compute_witness(tree_node, hyp_node, self.ob_tree)
         if witness is None:
             raise RuntimeError("Binary search: There should be a witness")
 
-        query_inputs = list(hyp_p_access) + sigma2 + witness
+        query_inputs = hyp_p_access + sigma2 + witness
         query_outputs = self.sul.query(query_inputs)
 
         self.ob_tree.insert_observation(query_inputs, query_outputs)
 
         tree_node_p = self.ob_tree.get_successor(sigma1)
 
-        witness_p = self._get_or_compute_witness(tree_node_p, hyp_node_p)
+        witness_p = Apartness.compute_witness(tree_node_p, hyp_node_p, self.ob_tree)
 
         if witness_p is not None:
             self._process_binary_search(hypothesis, sigma1, cex_outputs[:h])
