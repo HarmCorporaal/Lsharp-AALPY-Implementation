@@ -6,14 +6,13 @@ from Apartness import Apartness
 from ADS import Ads
 
 class Lsharp:
-    def __init__(self, alphabet: set, sul: SUL, eq_oracle: Oracle, automaton_type, extension_rule="Nothing", separation_rule="SepSeq", 
+    def __init__(self, alphabet: set, sul: SUL, eq_oracle: Oracle, extension_rule="Nothing", separation_rule="SepSeq", 
                max_learning_rounds=None):
         """
         Args:
         alphabet: input alphabet
         sul: system under learning
         eq_oracle: equivalence oracle
-        automaton_type: type of automaton to be learned. For now, 'dfa' is supported.
         max_learning_rounds: number of learning rounds after which learning terminates.
         ob_tree: observation tree
         frontier_to_basis_dict: dictionary of the frontier states
@@ -25,7 +24,6 @@ class Lsharp:
         self.alphabet = alphabet
         self.sul = sul
         self.eq_oracle = eq_oracle
-        self.automaton_type = automaton_type
         self.max_learning_rounds = max_learning_rounds
         self.ob_tree = ObservationTree(alphabet)
         self.basis = set()
@@ -34,6 +32,7 @@ class Lsharp:
         self.witness_cache = {}
         self.extension_rule = extension_rule
         self.separation_rule = separation_rule
+        self.results = [0,0,0,0]
         
     def run_Lsharp(self):
         """
@@ -58,17 +57,22 @@ class Lsharp:
             hypothesis = self._build_hypothesis()
 
             if isinstance(self.eq_oracle, WMethodEqOracleMealy):
-                counter_example = self.eq_oracle.find_cex(hypothesis, self.ob_tree)
+                counter_example, cex_outputs = self.eq_oracle.find_cex(hypothesis, self.ob_tree)
+                self.results[2] = self.eq_oracle.resets
+                self.results[3] = self.eq_oracle.num_steps
             else:
                 counter_example = self.eq_oracle.find_cex(hypothesis)
+                if counter_example is not None:
+                    cex_outputs = self.sul.query(counter_example)
+                    self.results[2] += 1
+                    self.results[3] += len(counter_example)
 
             if counter_example is None:
-                return hypothesis, self.sul, learning_rounds
+                return hypothesis, self.results, learning_rounds
 
-            cex_outputs = self.sul.query(counter_example)
             self._process_counter_example(hypothesis, counter_example, cex_outputs)
 
-        return hypothesis
+        raise Exception("Exceeded Max number of learning rounds")
 
     def _build_hypothesis(self):
         """
@@ -216,7 +220,9 @@ class Lsharp:
         if (self.extension_rule == "Nothing" or (self.extension_rule == "SepSeq" and len(self.basis) == 1)):
             inputs = self.ob_tree.get_transfer_sequence(self.ob_tree.root, basis_state)
             inputs.append(input)
-            outputs = self.sul.query(inputs)
+            outputs = self.sul.query(inputs) # LEARNING
+            self.results[0] += 1
+            self.results[1] += len(inputs)
             self.ob_tree.insert_observation(inputs, outputs)
             return
 
@@ -229,7 +235,9 @@ class Lsharp:
             inputs = self.ob_tree.get_transfer_sequence(self.ob_tree.root, basis_state)
             inputs.append(input)
             inputs.extend(witness)
-            outputs = self.sul.query(inputs)
+            outputs = self.sul.query(inputs) # LEARNING
+            self.results[0] += 1
+            self.results[1] += len(inputs)
             self.ob_tree.insert_observation(inputs, outputs)
             return
 
@@ -256,7 +264,9 @@ class Lsharp:
                 outputs.extend(tree_out)
                 return (inputs, outputs)
 
-        outputs = self.sul.query(prefix)
+        outputs = self.sul.query(prefix) # LEARNING
+        self.results[0] += 1
+        self.results[1] += len(prefix)
         sul_in, sul_out = self._sul_adaptive_query(prefix, suffix)
         if sul_out:
             outputs = sul_out
@@ -276,7 +286,9 @@ class Lsharp:
         self.sul.pre()
 
         for input in inputs:
-            output = self.sul.step(input)
+            output = self.sul.step(input) # LEARNING
+            self.results[0] += 1
+            self.results[1] += 1
             outputs_received.append(output)
 
         while True:
@@ -284,7 +296,9 @@ class Lsharp:
             if next_input is None:
                 break
             inputs.append(next_input)
-            output = self.sul.step(next_input)
+            output = self.sul.step(next_input) # LEARNING
+            self.results[0] += 1
+            self.results[1] += 1
             outputs_received.append(output)
             last_output = output
 
@@ -377,7 +391,9 @@ class Lsharp:
         inputs = self.ob_tree.get_transfer_sequence(self.ob_tree.root, frontier_state)
         inputs.extend(witness)
 
-        outputs = self.sul.query(inputs)
+        outputs = self.sul.query(inputs) # LEARNING
+        self.results[0] += 1
+        self.results[1] += len(inputs)
 
         return inputs, outputs
 
@@ -477,7 +493,9 @@ class Lsharp:
             raise RuntimeError("Binary search: There should be a witness")
 
         query_inputs = hyp_p_access + sigma2 + witness
-        query_outputs = self.sul.query(query_inputs)
+        query_outputs = self.sul.query(query_inputs) # LEARNING
+        self.results[0] += 1
+        self.results[1] += len(query_inputs)
 
         self.ob_tree.insert_observation(query_inputs, query_outputs)
 
