@@ -35,7 +35,7 @@ def benchmark(dot_file, extension_rule, separation_rule):
     sul_mealy = MealySUL(mealy_machine)
 
     # perfect_oracle = PerfectKnowledgeEqOracle(input_al, sul_mealy, mealy_machine)
-    w_method_oracle = WMethodEqOracleMealy(input_al, sul_mealy, 2, add_to_tree=True)
+    w_method_oracle = WMethodEqOracleMealy(input_al, sul_mealy, 2, add_to_tree=False)
     # state_prefix_oracle = StatePrefixEqOracle(input_al, sul_mealy, 50, 100)
 
     L_sharp = Lsharp(input_al, sul_mealy, w_method_oracle, extension_rule=extension_rule, separation_rule=separation_rule, max_learning_rounds=75)

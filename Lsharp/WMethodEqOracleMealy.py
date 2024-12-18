@@ -28,7 +28,7 @@ class WMethodEqOracleMealy(Oracle):
         self.num_steps = 0
         self.resets = 0
 
-    def find_cex(self, hypothesis, ob_tree):
+    def find_cex(self, hypothesis, ob_tree=None):
         if not hypothesis.characterization_set:
             if len(hypothesis.states) == 1:
                 hypothesis.characterization_set = [(a,) for a in self.alphabet]
@@ -52,13 +52,13 @@ class WMethodEqOracleMealy(Oracle):
                     outputs.append(out_sul)
                     if out_hyp != out_sul:
                         self.sul.post()
-                        return inp_seq[:ind + 1], outputs
+                        return inp_seq[:ind + 1]
                 
                 if self.add_to_tree:
                     ob_tree.insert_observation(inp_seq, outputs)
                 self.cache.add(inp_seq)
 
-        return None, None
+        return None
 
     def compute_characterization_set(self, hypothesis, char_set_init=None, online_suffix_closure=True, split_all_blocks=True, raise_warning=True):
         """

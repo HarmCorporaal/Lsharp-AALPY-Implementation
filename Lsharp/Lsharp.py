@@ -57,19 +57,18 @@ class Lsharp:
             hypothesis = self._build_hypothesis()
 
             if isinstance(self.eq_oracle, WMethodEqOracleMealy):
-                counter_example, cex_outputs = self.eq_oracle.find_cex(hypothesis, self.ob_tree)
+                counter_example = self.eq_oracle.find_cex(hypothesis, self.ob_tree)
                 self.results[2] = self.eq_oracle.resets
                 self.results[3] = self.eq_oracle.num_steps
             else:
                 counter_example = self.eq_oracle.find_cex(hypothesis)
-                if counter_example is not None:
-                    cex_outputs = self.sul.query(counter_example)
-                    self.results[2] += 1
-                    self.results[3] += len(counter_example)
+                self.results[2] += 1
+                self.results[3] += len(counter_example)
 
             if counter_example is None:
                 return hypothesis, self.results, learning_rounds
 
+            cex_outputs = self.sul.query(counter_example)
             self._process_counter_example(hypothesis, counter_example, cex_outputs)
 
         raise Exception("Exceeded Max number of learning rounds")
