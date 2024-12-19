@@ -62,8 +62,9 @@ class Lsharp:
                 self.results[3] = self.eq_oracle.num_steps
             else:
                 counter_example = self.eq_oracle.find_cex(hypothesis)
-                self.results[2] += 1
-                self.results[3] += len(counter_example)
+                if counter_example is not None:
+                    self.results[2] += 1
+                    self.results[3] += len(counter_example)
 
             if counter_example is None:
                 return hypothesis, self.results, learning_rounds
