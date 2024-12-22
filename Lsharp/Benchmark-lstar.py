@@ -53,7 +53,7 @@ all_models = ["ASN_learnresult_SecureCode Aut_fix", "1_learnresult_MasterCard_fi
           
 for dot_file in all_models:
     for index in range(100):
-        execution_time_new = timeit.timeit(lambda: benchmark("ASN_learnresult_SecureCode Aut_fix"), number=1)
+        execution_time_new = timeit.timeit(lambda: benchmark(dot_file), number=1)
         with open(file_path,mode="a",newline="") as file:
                 writer = csv.DictWriter(file, fieldnames=fields)
                 writer.writerow({"model": dot_file, 

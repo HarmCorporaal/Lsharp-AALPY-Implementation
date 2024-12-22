@@ -1,6 +1,7 @@
 import copy
 
 from itertools import product
+from random import shuffle
 
 from aalpy.base.Oracle import Oracle
 from aalpy.base.SUL import SUL
@@ -11,18 +12,16 @@ class WMethodEqOracleMealy(Oracle):
     Equivalence oracle based on characterization set/ W-set. From 'Tsun S. Chow.   Testing software design modeled by
     finite-state machines'.
     """
-    def __init__(self, alphabet: list, sul: SUL, extra_states, add_to_tree=False, shuffle_test_set=True):
+    def __init__(self, alphabet: list, sul: SUL, extra_states, add_to_tree=False):
         """
         Args:
 
             alphabet: input alphabet
             sul: system under learning
             max_number_of_states: maximum number of states in the automaton
-            shuffle_test_set: if True, test cases will be shuffled
         """
         super().__init__(alphabet, sul)
         self.k = extra_states
-        self.shuffle = shuffle_test_set
         self.cache = set()
         self.add_to_tree = add_to_tree
         self.num_steps = 0
@@ -39,7 +38,10 @@ class WMethodEqOracleMealy(Oracle):
         transition_cover = [shortest_paths[state] + (letter,) for state in hypothesis.states for letter in self.alphabet]
         middle = (seq for i in range(self.k + 1) for seq in product(self.alphabet, repeat=i))
 
-        for seq in product(transition_cover, middle, hypothesis.characterization_set):
+        test_suite = list(product(transition_cover, middle, hypothesis.characterization_set))
+        shuffle(test_suite)
+
+        for seq in test_suite:
             inp_seq = tuple([i for sub in seq for i in sub])
             if inp_seq not in self.cache:
                 self.reset_hyp_and_sul(hypothesis)

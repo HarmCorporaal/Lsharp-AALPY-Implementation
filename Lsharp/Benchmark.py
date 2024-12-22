@@ -11,7 +11,7 @@ learned_automaton = None
 
 fields = ["model", "number_of_states", "number_of_inputs", "complexity", "learning_rounds", "learn_queries", "learn_steps", "test_resets", "test_steps", "extension_rule", "seperation_rule", "time"]
 folder = "Experiment Results"
-result_file = "Experiment TEST.csv"
+result_file = "Experiment2 W-Method with buffer.csv"
 file_path = os.path.join(folder, result_file)
 
 
@@ -35,24 +35,26 @@ def benchmark(dot_file, extension_rule, separation_rule):
     sul_mealy = MealySUL(mealy_machine)
 
     # perfect_oracle = PerfectKnowledgeEqOracle(input_al, sul_mealy, mealy_machine)
-    w_method_oracle = WMethodEqOracleMealy(input_al, sul_mealy, 2, add_to_tree=False)
+    w_method_oracle = WMethodEqOracleMealy(input_al, sul_mealy, 2, add_to_tree=True)
     # state_prefix_oracle = StatePrefixEqOracle(input_al, sul_mealy, 50, 100)
 
     L_sharp = Lsharp(input_al, sul_mealy, w_method_oracle, extension_rule=extension_rule, separation_rule=separation_rule, max_learning_rounds=75)
     learned_automaton, results, learning_rounds = L_sharp.run_Lsharp()
 
 tests = [("Nothing", "SepSeq"), ("SepSeq", "SepSeq"), ("ADS", "SepSeq"), ("Nothing", "ADS"), ("SepSeq", "ADS"), ("ADS", "ADS")]
-old_models = ["ASN_learnresult_SecureCode Aut_fix", "1_learnresult_MasterCard_fix", "LoesTarget", "Rabo_learnresult_SecureCode_Aut_fix", 
+
+
+all_models2 = ["ASN_learnresult_SecureCode Aut_fix", "1_learnresult_MasterCard_fix", "LoesTarget", "Rabo_learnresult_SecureCode_Aut_fix", 
             "Rabo_learnresult_MAESTRO_fix", "ASN_learnresult_MAESTRO_fix", "4_learnresult_MAESTRO_fix", "10_learnresult_MasterCard_fix", 
             "Volksbank_learnresult_MAESTRO_fix", "learnresult_fix", "TCP_FreeBSD_Client", "TCP_Windows8_Client", "TCP_Linux_Client", 
-            "DropBear", "OpenSSH", "TCP_Windows8_Server", "TCP_FreeBSD_Server", "TCP_Linux_Server", "BitVise"]
-
-new_models = ["OpenSSL_1.0.2_client_regular", "OpenSSL_1.0.1j_client_regular", "RSA_BSAFE_Java_6.1.1_server_regular",
+            "DropBear", "OpenSSL_1.0.2_client_regular", "OpenSSL_1.0.1j_client_regular", "RSA_BSAFE_Java_6.1.1_server_regular",
             "miTLS_0.1.3_server_regular", "OpenSSL_1.0.2_server_regular", "NSS_3.17.4_client_regular", "GnuTLS_3.3.12_server_regular",
             "GnuTLS_3.3.12_client_regular", "NSS_3.17.4_server_regular", "OpenSSL_1.0.1l_server_regular", "OpenSSL_1.0.1g_client_regular", 
             "RSA_BSAFE_C_4.0.4_server_regular", "OpenSSL_1.0.1j_server_regular", "GnuTLS_3.3.8_client_regular", "OpenSSL_1.0.2_client_full", 
             "GnuTLS_3.3.8_server_regular", "GnuTLS_3.3.12_server_full", "GnuTLS_3.3.12_client_full", "OpenSSL_1.0.1g_server_regular", 
             "NSS_3.17.4_client_full", "GnuTLS_3.3.8_server_full", "GnuTLS_3.3.8_client_full"]
+
+all_models3 = ["OpenSSH", "TCP_Windows8_Server", "TCP_FreeBSD_Server", "TCP_Linux_Server", "BitVise"]
 
 all_models = ["ASN_learnresult_SecureCode Aut_fix", "1_learnresult_MasterCard_fix", "LoesTarget", "Rabo_learnresult_SecureCode_Aut_fix", 
             "Rabo_learnresult_MAESTRO_fix", "ASN_learnresult_MAESTRO_fix", "4_learnresult_MAESTRO_fix", "10_learnresult_MasterCard_fix", 
@@ -65,9 +67,9 @@ all_models = ["ASN_learnresult_SecureCode Aut_fix", "1_learnresult_MasterCard_fi
             "GnuTLS_3.3.8_server_regular", "GnuTLS_3.3.12_server_full", "GnuTLS_3.3.12_client_full", "OpenSSL_1.0.1g_server_regular", 
             "NSS_3.17.4_client_full", "GnuTLS_3.3.8_server_full", "GnuTLS_3.3.8_client_full"]
           
-for dot_file in new_models:
+for dot_file in all_models3:
     for (extension_rule, separation_rule) in tests:
-        for index in range(100):
+        for index in range(25):
             execution_time_new = timeit.timeit(lambda: benchmark(dot_file, extension_rule, separation_rule), number=1)
             with open(file_path,mode="a",newline="") as file:
                     writer = csv.DictWriter(file, fieldnames=fields)
