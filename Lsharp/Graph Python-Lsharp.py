@@ -5,7 +5,7 @@ import numpy as np
 import os
 
 folder = "Experiment Results"
-result_file = "Experiment1 Perfect.csv"
+result_file = "Experiment1 W-Method.csv"
 file_path = os.path.join(folder, result_file)
 df = pd.read_csv(file_path)
 
@@ -19,6 +19,10 @@ df = df.sort_values(by=['complexity', 'number_of_states'])
 unique_models = df['model'].unique()
 model_to_xpos = {model: i for i, model in enumerate(unique_models)}  # Map models to x-axis positions
 df['x_pos'] = df['model'].map(model_to_xpos)  # Map x positions to models
+
+# Add new columns for the required sums
+df['learn_resets_plus_steps'] = df['learn_resets'] + df['learn_steps']
+df['total_steps_and_resets'] = df['learn_resets'] + df['learn_steps'] + df['test_resets'] + df['test_steps']
 
 # New colors and markers as requested
 colors = ["blue", "k", "green", "red", "m", "y"]  # k is black
@@ -87,11 +91,11 @@ def create_scatter_with_error_bars(data, x_axis, y_axes, log_scale=False):
         plt.savefig(f"{y_axis}_scatter_with_errorbars{'_log' if log_scale else ''}.png", dpi=300)
         plt.show()
 
-# Define the y-axes to plot
-y_axes = ["learn_steps", "test_steps", "test_resets", "time"]  # List of y-axes
+# Define the new y-axes to plot
+y_axes = ["learn_resets_plus_steps", "total_steps_and_resets", "time"]  # Updated list of y-axes
 
 # Call the function for normal scale
-create_scatter_with_error_bars(df, 'x_pos', y_axes, log_scale=False)
+# create_scatter_with_error_bars(df, 'x_pos', y_axes, log_scale=False)
 
 # Call the function for log scale
 create_scatter_with_error_bars(df, 'x_pos', y_axes, log_scale=True)
