@@ -1,4 +1,4 @@
-model,number_of_states,number_of_inputs,complexity,learning_rounds,learn_queries,learn_steps,test_resets,test_steps,extension_rule,seperation_rule,time
+model,number_of_states,number_of_inputs,complexity,learning_rounds,learn_resets,learn_steps,test_resets,test_steps,extension_rule,seperation_rule,time
 ASN_learnresult_SecureCode Aut_fix,4,14,56,3,140,455,22376,121982,Nothing,SepSeq,0.12925201299367473
 ASN_learnresult_SecureCode Aut_fix,4,14,56,3,144,470,22374,121974,Nothing,SepSeq,0.1362429660075577
 ASN_learnresult_SecureCode Aut_fix,4,14,56,3,138,451,22375,121980,Nothing,SepSeq,0.13137668299896177

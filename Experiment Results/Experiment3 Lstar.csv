@@ -1,4 +1,4 @@
-model,number_of_states,number_of_inputs,complexity,learning_rounds,learn_queries,learn_steps,test_queries,test_steps,time
+model,number_of_states,number_of_inputs,complexity,learning_rounds,learn_resets,learn_steps,test_resets,test_steps,time
 ASN_learnresult_SecureCode Aut_fix,4,14,56,1,798,2758,156604,853776,0.37916295099421404
 ASN_learnresult_SecureCode Aut_fix,4,14,56,1,798,2758,156604,853776,0.4255590469983872
 ASN_learnresult_SecureCode Aut_fix,4,14,56,1,798,2758,156604,853776,0.4108480300055817

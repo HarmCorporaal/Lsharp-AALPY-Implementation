@@ -19,4 +19,4 @@ learned_automaton, results, learning_rounds = L_sharp.run_Lsharp()
 print(learned_automaton)
 
 print(f"number of learning rounds: {learning_rounds}")
-print(f"learn_queries: {results[0]} learn_steps: {results[1]} test_queries: {results[2]} test_steps: {results[3]}")
+print(f"learn_queries: {results[0]} learn_steps: {results[1]} test_resets: {results[2]} test_steps: {results[3]}")
