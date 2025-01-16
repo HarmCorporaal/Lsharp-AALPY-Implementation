@@ -1,7 +1,7 @@
 import copy
 
 from itertools import product
-from random import shuffle
+from random import shuffle, seed
 
 from aalpy.base.Oracle import Oracle
 from aalpy.base.SUL import SUL
@@ -27,7 +27,7 @@ class WMethodEqOracleMealy(Oracle):
         self.num_steps = 0
         self.resets = 0
 
-    def find_cex(self, hypothesis, ob_tree=None):
+    def find_cex(self, hypothesis, ob_tree=None, shuffle_seed=None):
         if not hypothesis.characterization_set:
             if len(hypothesis.states) == 1:
                 hypothesis.characterization_set = [(a,) for a in self.alphabet]
@@ -39,6 +39,9 @@ class WMethodEqOracleMealy(Oracle):
         middle = (seq for i in range(self.k + 1) for seq in product(self.alphabet, repeat=i))
 
         test_suite = list(product(transition_cover, middle, hypothesis.characterization_set))
+
+        if shuffle_seed is not None:
+            seed(shuffle_seed)
         shuffle(test_suite)
 
         for seq in test_suite:

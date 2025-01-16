@@ -6,7 +6,7 @@ from Apartness import Apartness
 from ADS import Ads
 
 class Lsharp:
-    def __init__(self, alphabet: set, sul: SUL, eq_oracle: Oracle, extension_rule="Nothing", separation_rule="SepSeq", 
+    def __init__(self, alphabet: set, sul: SUL, eq_oracle: Oracle, extension_rule="Nothing", separation_rule="SepSeq", seed=None, 
                max_learning_rounds=None):
         """
         Args:
@@ -33,6 +33,7 @@ class Lsharp:
         self.extension_rule = extension_rule
         self.separation_rule = separation_rule
         self.results = [0,0,0,0]
+        self.seed = seed
         
     def run_Lsharp(self):
         """
@@ -56,8 +57,11 @@ class Lsharp:
 
             hypothesis = self._build_hypothesis()
 
+            if (len(self.sul.automaton.states) == len(hypothesis.states)):
+                return hypothesis, self.results, learning_rounds
+
             if isinstance(self.eq_oracle, WMethodEqOracleMealy):
-                counter_example = self.eq_oracle.find_cex(hypothesis, self.ob_tree)
+                counter_example = self.eq_oracle.find_cex(hypothesis, self.ob_tree, self.seed)
                 self.results[2] = self.eq_oracle.resets
                 self.results[3] = self.eq_oracle.num_steps
             else:
