@@ -38,7 +38,7 @@ def benchmark(dot_file):
     w_method_oracle = WMethodEqOracleMealy(input_al, sul_mealy, 2, add_to_tree=False)
     # state_prefix_oracle = StatePrefixEqOracle(input_al, sul_mealy, 50, 100)
 
-    learned_automaton, data = run_Lstar(input_al, sul_mealy, w_method_oracle, automaton_type='mealy', cache_and_non_det_check=False, cex_processing='rs', return_data=True, print_level=0)
+    learned_automaton, data = run_Lstar(input_al, sul_mealy, w_method_oracle, automaton_type='mealy', cache_and_non_det_check=True, cex_processing='rs', return_data=True, print_level=0)
 
 all_models = ["ASN_learnresult_SecureCode Aut_fix", "1_learnresult_MasterCard_fix", "LoesTarget", "Rabo_learnresult_SecureCode_Aut_fix", 
             "Rabo_learnresult_MAESTRO_fix", "ASN_learnresult_MAESTRO_fix", "4_learnresult_MAESTRO_fix", "10_learnresult_MasterCard_fix", 
