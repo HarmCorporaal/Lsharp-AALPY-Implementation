@@ -26,13 +26,14 @@ class Lsharp:
         self.eq_oracle = eq_oracle
         self.max_learning_rounds = max_learning_rounds
         self.ob_tree = ObservationTree(alphabet)
+        self.ob_tree.root.reset_id_counter()
         self.basis = set()
         self.frontier_to_basis_dict = {}   
         self.basis_to_mealy_dict = {}
         self.witness_cache = {}
         self.extension_rule = extension_rule
         self.separation_rule = separation_rule
-        self.results = [0,0,0,0]
+        self.results = [0,0,0,0,0]
         self.seed = seed
         
     def run_Lsharp(self):
@@ -56,6 +57,9 @@ class Lsharp:
             learning_rounds += 1
 
             hypothesis = self._build_hypothesis()
+
+            # Added size for obtree
+            self.results[4] = self.ob_tree.root._id_counter
 
             if (len(self.sul.automaton.states) == len(hypothesis.states)):
                 return hypothesis, self.results, learning_rounds
