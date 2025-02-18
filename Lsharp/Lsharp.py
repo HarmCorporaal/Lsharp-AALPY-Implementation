@@ -272,9 +272,7 @@ class Lsharp:
                 outputs.extend(tree_out)
                 return (inputs, outputs)
 
-        outputs = self.sul.query(prefix) # LEARNING
-        self.results[0] += 1
-        self.results[1] += len(prefix)
+        # removed prefix call here
         sul_in, sul_out = self._sul_adaptive_query(prefix, suffix)
         if sul_out:
             outputs = sul_out
@@ -294,8 +292,8 @@ class Lsharp:
         self.sul.pre()
 
         for input in inputs:
-            output = self.sul.step(input) # LEARNING
-            self.results[0] += 1
+            output = self.sul.step(input)
+            # removed reset
             self.results[1] += 1
             outputs_received.append(output)
 
@@ -304,11 +302,12 @@ class Lsharp:
             if next_input is None:
                 break
             inputs.append(next_input)
-            output = self.sul.step(next_input) # LEARNING
-            self.results[0] += 1
+            output = self.sul.step(next_input)
+            # removed reset
             self.results[1] += 1
             outputs_received.append(output)
             last_output = output
+        self.results[0] += 1
 
         return inputs, outputs_received
 
