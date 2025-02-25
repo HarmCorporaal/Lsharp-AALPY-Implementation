@@ -1,4 +1,4 @@
-name,learned,rounds,num_states,num_inputs,learn_inputs,learn_resets,test_inputs,test_resets,ads_score,learning_algorithm,time_taken,seed
+name,learned,rounds,num_states,num_inputs,learn_inputs,learn_resets,test_inputs,test_resets,ads_score,learning_algorithm,time,seed
 ASN_learnresult_SecureCode Aut_fix.dot,true,3,4,14,474,145,0,0,0,lsharp_Nothing_SepSeq, 0.003112986, 81
 ASN_learnresult_SecureCode Aut_fix.dot,true,3,4,14,474,145,0,0,0,lsharp_Nothing_SepSeq, 0.002713153, 100
 ASN_learnresult_SecureCode Aut_fix.dot,true,3,4,14,474,145,0,0,0,lsharp_Nothing_SepSeq, 0.002856361, 158
