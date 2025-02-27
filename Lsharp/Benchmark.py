@@ -9,9 +9,9 @@ import csv, os
 result_sul = 0
 learned_automaton = None
 
-fields = ["model", "number_of_states", "number_of_inputs", "complexity", "learning_rounds", "learn_resets", "learn_steps", "test_resets", "test_steps", "extension_rule", "seperation_rule", "time", "seed"]
+fields = ["model", "number_of_states", "number_of_inputs", "complexity", "learning_rounds", "learn_resets", "learn_steps", "test_resets", "test_steps", "extension_rule", "separation_rule", "time", "seed"]
 folder = "Experiment Results"
-result_file = "Test W-Method with seed.csv"
+result_file = "Experiment2 - W-Method with buffer.csv"
 file_path = os.path.join(folder, result_file)
 
 
@@ -77,7 +77,7 @@ for dot_file in all_models:
                                     "test_resets": results[2], 
                                     "test_steps": results[3], 
                                     "extension_rule": extension_rule, 
-                                    "seperation_rule": separation_rule, 
+                                    "separation_rule": separation_rule, 
                                     "time": execution_time_new,
                                     "seed": seed
                     })

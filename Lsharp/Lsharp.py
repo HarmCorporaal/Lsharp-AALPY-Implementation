@@ -26,13 +26,14 @@ class Lsharp:
         self.eq_oracle = eq_oracle
         self.max_learning_rounds = max_learning_rounds
         self.ob_tree = ObservationTree(alphabet)
+        self.ob_tree.root.reset_id_counter()
         self.basis = set()
         self.frontier_to_basis_dict = {}   
         self.basis_to_mealy_dict = {}
         self.witness_cache = {}
         self.extension_rule = extension_rule
         self.separation_rule = separation_rule
-        self.results = [0,0,0,0]
+        self.results = [0,0,0,0,0]
         self.seed = seed
         
     def run_Lsharp(self):
@@ -56,6 +57,9 @@ class Lsharp:
             learning_rounds += 1
 
             hypothesis = self._build_hypothesis()
+
+            # Added size for obtree
+            self.results[4] = self.ob_tree.root._id_counter
 
             if (len(self.sul.automaton.states) == len(hypothesis.states)):
                 return hypothesis, self.results, learning_rounds
@@ -268,9 +272,7 @@ class Lsharp:
                 outputs.extend(tree_out)
                 return (inputs, outputs)
 
-        outputs = self.sul.query(prefix) # LEARNING
-        self.results[0] += 1
-        self.results[1] += len(prefix)
+        # removed prefix call here
         sul_in, sul_out = self._sul_adaptive_query(prefix, suffix)
         if sul_out:
             outputs = sul_out
@@ -290,8 +292,8 @@ class Lsharp:
         self.sul.pre()
 
         for input in inputs:
-            output = self.sul.step(input) # LEARNING
-            self.results[0] += 1
+            output = self.sul.step(input)
+            # removed reset
             self.results[1] += 1
             outputs_received.append(output)
 
@@ -300,11 +302,12 @@ class Lsharp:
             if next_input is None:
                 break
             inputs.append(next_input)
-            output = self.sul.step(next_input) # LEARNING
-            self.results[0] += 1
+            output = self.sul.step(next_input)
+            # removed reset
             self.results[1] += 1
             outputs_received.append(output)
             last_output = output
+        self.results[0] += 1
 
         return inputs, outputs_received
 
